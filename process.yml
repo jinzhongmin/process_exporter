@@ -1,0 +1,35 @@
+global:
+  port: ':9087'
+  path: /metrics
+metrics:
+    # type : each|end
+    # each : 遍历每个进程, 如果 filter 执行结果是 true , 就会有采集
+  - type: each
+    # filter : 可用变量有 { Process }
+    filter: '{{ true }}'
+    name: process_write_bytes
+    help: process Write Bytes help
+    # value_type : Counter -> 1|Gauge -> 2
+    value_type: 1
+    # value : 可用变量
+    # 如果是 each { Processes, Process }
+    # 如果是 end { Processes }
+    value: '{{ .Process.GetWriteBytes }}'
+    # variable_labels.value : 可用变量
+    # 如果是 each { Processes, Process }
+    # 如果是 end { Processes }    
+    variable_labels:
+      - label: pid
+        value: '{{ .Process.Pid }}'
+      - label: cmd
+        value: '{{ .Process.GetCmdLine }}'
+    # const_labels.value : { Processes }
+    const_labels:
+      - label: AllProcesses
+        value: '{{ .Processes.Count }}'
+  - type: end
+    filter: '{{ .Process.HasCmdSub "chrome"}}'
+    name: process_chrome_processes_count
+    help: process chrome processes count
+    value_type: 2
+    value: '{{ .Processes.Count }}'
